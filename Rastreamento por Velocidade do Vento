@@ -86,7 +86,7 @@ for i in range(len(d)):
                 print("Ocorreu um erro em %s %sZ (%s):"  %(dataFormatada,hora0,estação), erro)
             
 #-------------------------------------------------------------------------------------------------
-#Seção do Radar
+#Download das Imagens do Radar
         
         url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(dano,mes0,dia0)
 
@@ -107,7 +107,7 @@ for i in range(len(d)):
                 if file_stats>=100000:
                     dias_radar.append(j[3:9])
                     sigmet.radar_cpmet(j)
-                    plt.savefig( '%s.png' %(dataFormatada))
+                    plt.savefig( '%s_%s - %s %smm' %(dataFormatada,hora0,estação,chuvar), dpi=100)
                     print ('Imagem de Radar Salva para o dia %s/%s/%s (%s m/s)' %(dia0,mes0,dano2,vento))
                     n=n+1
 
