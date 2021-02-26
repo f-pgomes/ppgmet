@@ -26,9 +26,9 @@ fig.add_trace(go.Scatter( x=df['Data'], y=df['RAJADA MAXIMA (CANGUÇU)'], name='
 
 fig.update_layout(title='Rajada Máxima de Vento - 2019', xaxis_title='Tempo (horas UTC)', yaxis_title='Velocidade do Vento (m/s)')
 
-#fig.show()
+fig.show()
 
-#plotly.offline.plot(fig, filename="Vento_2019.html")
+plotly.offline.plot(fig, filename="Vento_2019.html")
 
 caguçu=df['RAJADA MAXIMA (CANGUÇU)']
 mostardas=df['RAJADA MAXIMA (MOSTARDAS)']
