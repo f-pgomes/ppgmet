@@ -35,10 +35,11 @@ d=df['Data'].dt.date
 ano=df['Data'].dt.year
 mes=df['Data'].dt.month
 dia=df['Data'].dt.day
-n=0
+n=1
+ndias=0
 dias_satelite=[None]
 dias_radar=[None]
-ndias=0
+
 
 for i in range(len(d)):
     if caguçu[i]>=int(limiar) or mostardas[i]>=int(limiar) or rio_grande[i]>=int(limiar):
@@ -54,9 +55,9 @@ for i in range(len(d)):
         else:
             mes2d=str(mes[i])
         if dia[i]<10:
-            dia_dd=str(0)+str(dia[i])
+            dia2d=str(0)+str(dia[i])
         else:
-            dia_dd=str(dia[i])
+            dia2d=str(dia[i])
 
         if caguçu[i]>=int(limiar):
             chuva=str(caguçu[i])
@@ -71,16 +72,16 @@ for i in range(len(d)):
         dataFormatada = str(d[i].strftime('%Y%m%d'))
         ano4d=str(ano[i])
         ano2d=ano[i]-2000
-        chuvar=int(round(float(chuva),0))
-        chuvar=str(chuvar)
+        chuva_arredondado=int(round(float(chuva),0))
+        chuva_arredondado=str(chuva_arredondado)
 
 #Download das imagens do cptec
 
         if dias_satelite[ndias]!=dataFormatada:
             try:
                 if int(mes2d)>=2:
-                    urllib.request.urlretrieve("http://satelite.cptec.inpe.br/repositoriogoes/goes16/goes16_web/ams_ret_ch13_baixa/%s/%s/S11635388_%s1200.jpg" %(ano4d,mes2d,dataFormatada), "%s_12Z - %s_%smm.jpg" %(dataFormatada,estação,chuvar))
-                    urllib.request.urlretrieve("http://img0.cptec.inpe.br/~rgptimg/Produtos-Pagina/Carta-Sinotica/Analise/Superficie/superficie_%s12.gif" %(dataFormatada), "%s_12Z - %s_%smm.gif" %(dataFormatada,estação,chuvar))
+                    urllib.request.urlretrieve("http://satelite.cptec.inpe.br/repositoriogoes/goes16/goes16_web/ams_ret_ch13_baixa/%s/%s/S11635388_%s1200.jpg" %(ano4d,mes2d,dataFormatada), "%s_12Z - %s_%smm.jpg" %(dataFormatada,estação,chuva_arredondado))
+                    urllib.request.urlretrieve("http://img0.cptec.inpe.br/~rgptimg/Produtos-Pagina/Carta-Sinotica/Analise/Superficie/superficie_%s12.gif" %(dataFormatada), "%s_12Z - %s_%smm.gif" %(dataFormatada,estação,chuva_arredondado))
                     print("Imagens de satélite e cptec salvas do dia %s 12Z (%s m/s) - %s" %(dataFormatada,chuva,estação))
                     dias_satelite.append(dataFormatada)
                     ndias=ndias+1
@@ -93,14 +94,14 @@ for i in range(len(d)):
 
 #Download das imagens de satétite
 
-        url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia_dd)
+        url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia2d)
 
         links=[]
         
         try:
-            urllib.request.urlretrieve('http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia_dd))
+            urllib.request.urlretrieve('http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia2d))
         except:
-            print('Não foram encontradas imagens de radar para o dia %s/%s/%s (%s mm)' %(dia_dd,mes2d,dano2,chuva))
+            print('Não foram encontradas imagens de radar para o dia %s/%s/%s (%s mm)' %(dia2d,mes2d,ano2d,chuva))
         
         website=requests.get(url)
         website_text=website.text
@@ -110,19 +111,18 @@ for i in range(len(d)):
             links.append(link.get('href'))
 
         for j in links:
-            if j[3:9] == '%s%s%s' %(dano2,mes2d,dia_dd) and j[3:9] != dias_radar[n-1]:                    
+            if j[3:9] == '%s%s%s' %(ano2d,mes2d,dia2d) and j[3:9] != dias_radar[n-1]:                    
                 web=url+j                    
-                #print(web)
                 urllib.request.urlretrieve(web,j)
                 file_stats = os.path.getsize("C:/Users/FERNANDO/AppData/Local/Programs/Python/Python38-32/%s" %(j))
                 if file_stats>=100000:
                     dias_radar.append(j[3:9])                                                
                     sigmet.radar_cpmet(j)      #função que roda o script do radar com nome "sigmet" 
-                    plt.savefig( '%s_%s - %s %smm' %(dataFormatada,hora0,estação,chuvar), dpi=100)
-                    print ('Imagem de Radar Salva para o dia %s/%s/%s (%s mm)' %(dia_dd,mes2d,dano2,chuva))
+                    plt.savefig( '%s_%s - %s %smm' %(dataFormatada,hora0,estação,chuva_arredondado), dpi=100)
+                    print ('Imagem de Radar Salva para o dia %s/%s/%s (%s mm)' %(dia2d,mes2d,ano2d,chuva))
                     n=n+1
                     break        
                 
 ndias=str(ndias)
-n=str(n)
-print('N° de imagens de satélite/cptec baixadas: %s |' %(ndias), 'N° de imagens de radar encontradas: %s' %(n))
+n=str(n-1)
+print('N° de imagens de satélite/cptec baixadas: %s |' %(ndias), 'N° de imagens de radar baixadas: %s' %(n))
