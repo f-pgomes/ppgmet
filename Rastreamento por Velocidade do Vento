@@ -15,9 +15,6 @@ limiar=input('Digite o valor mínimo de velocidade do vento (m/s): ')
 
 excel_file = 'Estações_2019.xlsx'
 df = pd.read_excel(excel_file)
-#print(df)
-
-#data = [go.Scatter( x=df['Data'], y=df['PRECIPITAÇÃO TOTAL (RIO GRANDE)'])]
 
 fig = go.Figure()
 fig.add_trace(go.Scatter( x=df['Data'], y=df['RAJADA MAXIMA (RIO GRANDE)'], name='Rio Grande'))
@@ -73,6 +70,8 @@ for i in range(len(d)):
         dano2=ano[i]-2000
         ventoar=int(round(float(vento),0))
         ventoar=str(ventoar)
+
+#Download das Imagens de Satélite e do CPTEC
         if dias_satelite[ndias]!=dataFormatada:
             try:
                 if int(mes0)>=2:
@@ -86,7 +85,8 @@ for i in range(len(d)):
                 erro = sys.exc_info()
                 print("Ocorreu um erro em %s %sZ (%s):"  %(dataFormatada,hora0,estação), erro)
             
-#--------------------------------
+#-------------------------------------------------------------------------------------------------
+#Seção do Radar
         
         url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(dano,mes0,dia0)
 
