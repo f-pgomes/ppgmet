@@ -92,7 +92,7 @@ for i in range(len(d)):
 
 #--------------------------------
 
-#Download das imagens de satétite
+#Download das imagens de radar
 
         url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia2d)
 
