@@ -1,0 +1,41 @@
+import plotly
+import plotly.graph_objects as go
+from matplotlib import pyplot as plt
+import pandas as pd
+import urllib.request
+import sys
+from datetime import date, datetime
+import requests
+from bs4 import BeautifulSoup
+import sigmet
+import os
+import webbrowser
+
+data=input('Digite o dia e hora local do evento no formato yyyymmdd: ')
+ano=data[0:4]
+mes=data[4:6]
+dia=data[6:8]
+hora=int(input('Digite a hora local do evento no formato hh: '))
+horaZ=str(hora+3)
+cidade=input('Nome da cidade:')
+webbrowser.open('http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano,mes,dia))
+webbrowser.open("http://satelite.cptec.inpe.br/repositoriogoes/goes16/goes16_web/ams_ret_ch13_baixa/%s/%s/S11635388_%s%s00.jpg" %(ano,mes,data,horaZ), "%s_%sZ - %s.jpg" %(data,horaZ,cidade))
+webbrowser.open("http://img0.cptec.inpe.br/~rgptimg/Produtos-Pagina/Carta-Sinotica/Analise/Superficie/superficie_%s12.gif" %(data), "%s_12Z - %s.gif" %(data,cidade))
+arq_radar=input('Nome do arquivo de radar:')
+
+url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano,mes,dia)
+web=url+arq_radar
+
+links=[]
+website=requests.get(url)
+website_text=website.text
+soup = BeautifulSoup(website_text)
+
+for link in soup.find_all('a'):
+    links.append(link.get('href'))
+
+urllib.request.urlretrieve(web,arq_radar)
+sigmet.radar_cpmet(arq_radar)
+
+plt.savefig( '%s - %s' %(data,cidade), dpi=100)
+print ('Imagem de Radar Salva para o dia %s/%s/%s' %(dia,mes,ano))
