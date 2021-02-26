@@ -107,7 +107,7 @@ for i in range(len(d)):
                 if file_stats>=100000:
                     dias_radar.append(j[3:9])
                     sigmet.radar_cpmet(j)
-                    plt.savefig( '%s_%s - %s %smm' %(dataFormatada,hora0,estação,chuvar), dpi=100)
+                    plt.savefig( '%s_%s - %s %sms-1' %(dataFormatada,hora0,estação,chuvar), dpi=100)
                     print ('Imagem de Radar Salva para o dia %s/%s/%s (%s m/s)' %(dia0,mes0,dano2,vento))
                     n=n+1
 
