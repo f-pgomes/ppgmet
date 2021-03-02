@@ -1,0 +1,41 @@
+from googlesearch import search
+
+cidades = ['Porto Alegre', 'Pelotas', 'Rio Grande', 'Canguçu', 'Mostardas', 'São Lourenço do Sul', 
+           'Pedro Osório', 'Cassino', 'Bojuru', 'Capão Comprido', 'Santa Celina', 
+           'Arroio Grande', 'Jaguarão', 'Herval', 'Candiota', 'Pinheiro Machado', 
+           'Amaral Ferrador', 'Camaquã', 'Tapes', 'Tavares','Capão Comprido', 'Barra do Chuí', 
+           'Santa Vitória do Palmar', 'Bagé', 'Lavras do Sul', 'Minas do Camaquã',
+          'Santana da Boa Vista', 'Encruzilhada do Sul', 'Dom Feliciano', 
+           'Palmares do Sul', 'Canoas', 'Butiá', 'Pantano Grande', 'Rio Pardo', 
+           'Cachoeira do Sul', 'São Sepé', 'Caçapava do Sul', 'Vila Nova do Sul', 
+           'São Gabriel', 'Dom Pedrito', 'Restinga Seca', 'Candelária', 
+           'Santa Cruz do Sul', 'Venâncio Aires', 'São Leopoldo']
+
+listsize=len(cidades)
+keyword=input('Digite as palavras-chave da busca (sem vírgulas): ')
+ncidades=int(input(f'Existem {listsize} cidades sob o alcance do radar. Deseja pesquisar em quantas cidades? '))
+excluir='-'+input('Digite uma palavra que a busca deve excluir. Se não houver, aperte Enter.')
+nresultados=int(input('Deseja quantos resultados por cidade? '))
+
+m=1
+if excluir=='-':
+    excluir=''
+
+for i in cidades:
+    search_query=f'{keyword} {i} {excluir} after:2018 before:2020-05-01'
+    print(f'\n{i}')
+    print(f'Pesquisando com os termos: {search_query}')
+    for j in search(search_query,
+        #tld='com',
+        lang='pt',
+        num=nresultados,
+        stop=nresultados,
+        pause=2.0):
+        print(j)
+    if m==ncidades:
+        break
+    else:
+        m+=1
+
+print('\n')
+print('A busca foi encerrada.')
