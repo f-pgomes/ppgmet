@@ -14,7 +14,8 @@ import webbrowser
 
 limiar=input('Digite o valor mínimo de pluviosidade (mm): ')
 
-#SEÇÃO 1: GRÁFICO
+#----------------------------------------//--------------------------------------------------#
+#SEÇÃO 1: GRÁFICO INTERATIVO
 
 #Leitura da aba "chuva" do arquivo "Estações_2019"
 
@@ -22,7 +23,7 @@ excel_file = 'Estações_2019.xlsx'
 df = pd.read_excel(excel_file, 'Precipitação')
 
 fig = go.Figure()
-nomes=df.columns   #lista com o nome de cada coluna
+nomes=df.columns   #lista com o nome de cada co#luna
 
 #Definição das variáveis do gráfico
 for curva in range(2,14):
@@ -31,10 +32,11 @@ for curva in range(2,14):
 fig.update_layout(title='Precipitação - 2019', xaxis_title='Tempo (horas UTC)', yaxis_title='Pluviosidade (mm)')
 
 #Plotagem do gráfico
-#fig.show()
-#plotly.offline.plot(fig, filename="chuva_2019.html")
+fig.show()
+plotly.offline.plot(fig, filename="chuva_2019.html")
 
-#SEÇÃO 2: RASTREAMENTO DOS VALORES DE chuva ACIMA DO LIMIAR E DOWNLOAD DAS IMAGENS DO CPTEC
+#----------------------------------------//--------------------------------------------------#
+#SEÇÃO 2: RASTREAMENTO DOS VALORES PLUVIOMÉTRICOS ACIMA DO LIMIAR ESCOLHIDO.
 
 #Definição de variáveis para cada coluna contendo os dados
 canguçu=df['Canguçu']
@@ -104,7 +106,8 @@ for pluv in estações:
             chuva_arredondado=int(round(float(chuva),0))
             chuva_arredondado=str(chuva_arredondado)
 
-#SEÇÃO 3: DOWNLOAD DAS IMAGENS DE RADAR, SATÉLITE E DE CARTAS SINÓTICAS DO CPTEC
+#----------------------------------------//--------------------------------------------------#
+#SEÇÃO 3: DOWNLOAD DAS IMAGENS DE RADAR, SATÉLITE E DE CARTAS SINÓTICAS DO CPTEC.
 
             url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia2d)
 
