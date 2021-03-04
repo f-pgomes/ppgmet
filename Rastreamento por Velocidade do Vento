@@ -10,118 +10,171 @@ import requests
 from bs4 import BeautifulSoup
 import sigmet
 import os
+import webbrowser
 
 limiar=input('Digite o valor mínimo de velocidade do vento (m/s): ')
 
+#----------------------------------------//--------------------------------------------------#
+#SEÇÃO 1: GRÁFICO INTERATIVO
+
+#Leitura da aba "Vento" do arquivo "Estações_2019"
+
 excel_file = 'Estações_2019.xlsx'
-df = pd.read_excel(excel_file)
+df = pd.read_excel(excel_file, 'Vento')
 
 fig = go.Figure()
-fig.add_trace(go.Scatter( x=df['Data'], y=df['RAJADA MAXIMA (RIO GRANDE)'], name='Rio Grande'))
-fig.add_trace(go.Scatter( x=df['Data'], y=df['RAJADA MAXIMA (MOSTARDAS)'], name='Mostardas'))
-fig.add_trace(go.Scatter( x=df['Data'], y=df['RAJADA MAXIMA (CANGUÇU)'], name='Canguçu'))
+nomes=df.columns   #lista com o nome de cada coluna
+
+#Definição das variáveis do gráfico
+for curva in range(2,14):
+    fig.add_trace(go.Scatter( x=df['Data'], y=df[nomes[curva]], name=nomes[curva]))
 
 fig.update_layout(title='Rajada Máxima de Vento - 2019', xaxis_title='Tempo (horas UTC)', yaxis_title='Velocidade do Vento (m/s)')
 
+#Plotagem do gráfico
 fig.show()
-
 plotly.offline.plot(fig, filename="Vento_2019.html")
 
-caguçu=df['RAJADA MAXIMA (CANGUÇU)']
-mostardas=df['RAJADA MAXIMA (MOSTARDAS)']
-rio_grande=df['RAJADA MAXIMA (RIO GRANDE)']
+#----------------------------------------//--------------------------------------------------#
+#SEÇÃO 2: RASTREAMENTO DOS VALORES PLUVIOMÉTRICOS ACIMA DO LIMIAR ESCOLHIDO.
+
+#Definição de variáveis para cada coluna contendo os dados
+canguçu=df['Canguçu']
+mostardas=df['Mostardas']
+rio_grande=df['Rio Grande']
+jaguarão=df['Jaguarão']
+santa_vitoria=df['Sta Vitória do Palmar']
+poa=df['Porto Alegre']
+bage=df['Bagé']
+camaqua=df['Camaquã']
+caçapava=df['Caçapava do Sul']
+dom_pedrito=df['Dom Pedrito']
+rio_pardo=df['Rio Pardo']
+sao_gabriel=df['São Gabriel']
+
+#Lista com todas colunas contendo as variáveis
+estações=[rio_grande, mostardas, canguçu, santa_vitoria, jaguarão, poa, bage, camaqua, caçapava, dom_pedrito, rio_pardo,
+         sao_gabriel]
+
+#Extração das informações de dia, mês, ano e hora correspondente ao dado achado
 hora=df['Hora UTC']
 data=df['Data'].dt.date
 ano=df['Data'].dt.year
 mes=df['Data'].dt.month
 dia=df['Data'].dt.day
+
+#Definições de variáveis e listas usadas em loop
 n=1
+indice=2
 ndias=0
-dias_satelite=[None]
-dias_radar=[None]
+falha=0
+dias_satelite=['20190101']
+dias_radar=['190101']
 dias_semradar=[None]
+dic={}
 
-for i in range(len(d)):
+#Rastreamento de valores de rajadas de vento maiores que o valor de entrada
 
-#Transformar o formato de número para o de dois dígitos
+for rajada in estações:
 
-    if caguçu[i]>=int(limiar) or mostardas[i]>=int(limiar) or rio_grande[i]>=int(limiar):
-        if hora[i]<10:
-            hora_hh=str(0)+str(hora[i])
-        else:
-            hora_hh=str(hora[i])
-        if mes[i]<10:
-            mes2d=str(0)+str(mes[i])
-        else:
-            mes2d=str(mes[i])
-        if dia[i]<10:
-            dia2d=str(0)+str(dia[i])
-        else:
-            dia2d=str(dia[i])
+    #Transformar o formato de número para o de dois dígitos
+    for i in range(len(data)):
+        if rajada[i]>=int(limiar):
+            if hora[i]<10:
+                hora2d=str(0)+str(hora[i])
+            else:
+                hora2d=str(hora[i])
+            if mes[i]<10:
+                mes2d=str(0)+str(mes[i])
+            else:
+                mes2d=str(mes[i])
+            if dia[i]<10:
+                dia2d=str(0)+str(dia[i])
+            else:
+                dia2d=str(dia[i])
 
-        if caguçu[i]>=int(limiar):
-            vento=str(caguçu[i])
-            estação='Canguçu'
-        elif mostardas[i]>=int(limiar):
-            vento=str(mostardas[i])
-            estação='Mostardas'
-        elif rio_grande[i]>=int(limiar):
-            vento=str(rio_grande[i])
-            estação='Rio Grande'
+            #Transformação dos valores encontrados em strings
+            ano4d=str(ano[i])
+            vento=str(rajada[i])
+            
+            #Nome da estação
+            estação=nomes[indice]
+            
+            #Formatação de data e valores de vento
+            dataFormatada = str(data[i].strftime('%Y%m%d'))
+            ano2d=ano[i]-2000
+            vento_arredondado=int(round(float(vento),0))
+            vento_arredondado=str(vento_arredondado)
 
-        dataFormatada = str(data[i].strftime('%Y%m%d'))
-        ano4d=str(ano[i])
-        ano2d=ano[i]-2000
-        vento_arredondado=int(round(float(vento),0))
-        vento_arredondado=str(vento_arredondado)
-        
-#Download das imagens do cptec
-        if dias_satelite[ndias]!=dataFormatada:
+#----------------------------------------//--------------------------------------------------#
+#SEÇÃO 3: DOWNLOAD DAS IMAGENS DE RADAR, SATÉLITE E DE CARTAS SINÓTICAS DO CPTEC
+
+            url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia2d)
+
+            links=[]
+            website=requests.get(url)
+            website_text=website.text
+            soup = BeautifulSoup(website_text)
+
+            for link in soup.find_all('a'):
+                links.append(link.get('href'))
+
             try:
-                if int(mes2d)>=2:
-                    urllib.request.urlretrieve("http://satelite.cptec.inpe.br/repositoriogoes/goes16/goes16_web/ams_ret_ch13_baixa/%s/%s/S11635388_%s1200.jpg" %(ano4d,mes2d,dataFormatada), "%s_12Z - %s_%sms-1.jpg" %(dataFormatada,estação,vento_arredondado))
-                    urllib.request.urlretrieve("http://img0.cptec.inpe.br/~rgptimg/Produtos-Pagina/Carta-Sinotica/Analise/Superficie/superficie_%s12.gif" %(dataFormatada), "%s_12Z - %s_%sms-1.gif" %(dataFormatada,estação,vento_arredondado))
-                    print("Imagens de satélite e cptec salvas do dia 12Z %s/%s/%s (%s m/s) - %s" %(dia2d,mes2d,ano2d,vento,estação))
-                    dias_satelite.append(dataFormatada)
-                    ndias=ndias+1
-                    pass
+                urllib.request.urlretrieve('http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia2d))
+
+                for j in links:
+                    if j[3:13] == f'{ano2d}{mes2d}{dia2d}{hora2d}00' and j[3:9] != dias_radar[n-1][0:6]:
+                        web=url+j                    
+                        urllib.request.urlretrieve(web,j)
+                        file_stats = os.path.getsize("C:/Users/FERNANDO/AppData/Local/Programs/Python/Python38-32/%s" %(j))
+                        if file_stats>=100000:
+                            sigmet.radar_cpmet(j)     #função que roda o script do radar com nome "sigmet.py" 
+                            plt.savefig( '%s_%s - %s %sms-1' %(dataFormatada,hora2d,estação,vento_arredondado), dpi=100)
+                            dias_radar.append(j[3:13])
+                            print ('Imagem de Radar Salva para o dia %sZ %s/%s/%s (%s m/s)' %(hora2d,dia2d,mes2d,ano2d,vento))                            
+                            
+                             #Download das imagens do cptec
+                            if dias_satelite[ndias][0:8]!=dataFormatada:
+                                try:
+                                    if int(mes2d)>=2:
+                                        urllib.request.urlretrieve("http://satelite.cptec.inpe.br/repositoriogoes/goes16/goes16_web/ams_ret_ch13_baixa/%s/%s/S11635388_%s1200.jpg" %(ano4d,mes2d,dataFormatada), "%s_12Z - %s_%sms-1.jpg" %(dataFormatada,estação,vento_arredondado))
+                                        urllib.request.urlretrieve("http://img0.cptec.inpe.br/~rgptimg/Produtos-Pagina/Carta-Sinotica/Analise/Superficie/superficie_%s12.gif" %(dataFormatada), "%s_12Z - %s_%sms-1.gif" %(dataFormatada,estação,vento_arredondado))
+                                        print(f"Imagens de satélite e cptec salvas do dia 12Z {dia2d}/{mes2d}/{ano2d} ({vento} m/s, {hora2d}Z) - {estação}")
+                                        dias_satelite.append(dataFormatada+hora2d)
+                                        ndias=ndias+1
+                                        pass
+                                except:
+                                    erro = sys.exc_info()
+                                    print("Não foi possível baixar as imagens do cptec para %s %sZ (%s):"  %(dataFormatada,hora2d,estação), erro)
+                            
+                            dic[f'- {vento} m/s | {hora2d}Z {dia2d}/{mes2d}/{ano2d}']=estação
+                            n=n+1        
+                            break
             except:
                 erro = sys.exc_info()
-                print("Ocorreu um erro em %s %sZ (%s):"  %(dataFormatada,hora_hh,estação), erro)
-            
-#--------------------------------
-#Download das imagens de radar
+                dias_semradar.append('%s%s%s' %(dia2d,mes2d,ano2d))
+                if dias_semradar[len(dias_semradar)-1] != dias_semradar[len(dias_semradar)-2]: 
+                    print(f'Não foi possível baixar a imagem de radar para o dia {dia2d}/{mes2d}/{ano2d} ({vento} m/s, {hora2d}Z),', 'Erro:',erro)
+                    falha+=1
+        else:
+            continue
 
-        url='http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia2d)
-        
-        links=[]
-        website=requests.get(url)
-        website_text=website.text
-        soup = BeautifulSoup(website_text)
+    indice+=1
+    
+#ndias=str(ndias)
+n=n-1
+print(f'\nResumo:\n\n- Total de {n+falha} casos encontrados.')
+print(f'- Nº de imagens de satélite/cptec baixadas: {ndias}', f'\n- Nº de imagens de radar baixadas: {n}', f'\n- Nº de imagens de radar que não puderam ser baixadas: {falha}\n')
 
-        for link in soup.find_all('a'):
-            links.append(link.get('href'))
+for d in dic:
+    print(dic[d]," "*(21-len(dic[d])), d)
 
-        try:
-            urllib.request.urlretrieve('http://200.17.160.116:18000/dados/iris_data/product_raw/%s/%s/%s/' %(ano4d,mes2d,dia2d))
-        except:
-            dias_semradar.append('%s%s%s' %(dia2d,mes2d,ano2d))
-            if dias_semradar[len(dias_semradar)-1] != dias_semradar[len(dias_semradar)-2]: 
-                print('Não foram encontradas imagens de radar para o dia %s/%s/%s (%s m/s)' %(dia2d,mes2d,ano2d,vento))
+print('\n')
+satexat=input('Deseja observar as imagens de satélite dos horários exatos dos eventos? (s)(n): ')
+if satexat=='s' or satexat=='sim':
+    for novaba in dias_satelite[1:]:
+        webbrowser.open(f"http://satelite.cptec.inpe.br/repositoriogoes/goes16/goes16_web/ams_ret_ch13_baixa/{novaba[0:4]}/{novaba[4:6]}/S11635388_{novaba[0:10]}00.jpg")
+else:
+    pass
 
-        for j in links:
-            if j[3:9] == '%s%s%s' %(ano2d,mes2d,dia2d) and j[3:9] != dias_radar[n-1]:                    
-                web=url+j                    
-                urllib.request.urlretrieve(web,j)
-                file_stats = os.path.getsize("C:/Users/FERNANDO/AppData/Local/Programs/Python/Python38-32/%s" %(j))
-                if file_stats>=100000:
-                    dias_radar.append(j[3:9])
-                    sigmet.radar_cpmet(j)
-                    plt.savefig( '%s_%s - %s %sms-1' %(dataFormatada,hora_hh,estação,vento_arredondado), dpi=100)
-                    print ('Imagem de Radar Salva para o dia %s/%s/%s (%s m/s)' %(dia2d,mes2d,ano2d,vento))
-                    n=n+1
-                    break
-            
-ndias=str(ndias)
-n=str(n-1)
-print('N° de imagens de satélite/cptec baixadas: %s |' %(ndias), 'N° de imagens de radar baixadas: %s' %(n))
+print('\nFim da Sessão')
